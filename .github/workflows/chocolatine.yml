@@ -68,7 +68,7 @@ jobs:
   push_to_mirror:
     needs: [run_tests]
     if: ${{ github.event_name == 'push' }}
-    name: "oush_to_mirror"
+    name: "push_to_mirror"
     runs-on: ubuntu-latest
 
     steps:
