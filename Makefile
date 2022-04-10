@@ -7,7 +7,7 @@
 
 CC	=	gcc
 
-SRC	=	test.c
+SRC	=	src/test.c
 
 OBJ	=	$(SRC:.c=.o)
 
