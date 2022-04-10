@@ -1,44 +1,36 @@
 ##
 ## EPITECH PROJECT, 2022
-## qfdqffsfsq
+## sfqsfsqf
 ## File description:
-## fsfqsf
+## qfs
 ##
 
-SRC =  	 src/test.c \
-	 src/main.c
+CC	=	gcc
 
-OBJ =	 $(SRC:.c=.o) \
+SRC	=	test.c
 
-TEST_SRC =      tests/test_dop.c \
+OBJ	=	$(SRC:.c=.o)
 
-TEST_NAME = 	unit_tests
+NAME	=	test
 
-NAME =	   dop
+$(NAME):	 $(OBJ)
+	$(CC) $(OBJ) -o $(NAME)
 
-INC = 	 include/
+all:	$(NAME)
 
-CC =	 gcc
-
-CFLAGS =	 -Wall -Wextra -Wpedantic
-
-CPPFLAGS = -I include/
-
-COVFLAG=	--coverage -lcriterion
-
-all: $(NAME)
-
-$(NAME): $(OBJ)
-	$(CC) -o $(NAME) $(OBJ)
+tests_run:
+	make -C tests/
 
 clean:
-	$(RM) $(OBJ)
-	$(RM) *.gcda
-	$(RM) *.gcno
+	rm -f $(OBJ)
 
-fclean:	clean
-	$(RM) $(NAME)
-	$(RM) *.o
-	$(RM) $(TEST_NAME)
+coverage:
+	@gcovr
 
-re:    fclean all
+fclean: clean
+	rm -f $(NAME)
+	make fclean -C ./tests
+
+re:	fclean all
+
+.PHONY:	$(NAME) all clean fclean

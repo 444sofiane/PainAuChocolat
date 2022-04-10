@@ -27,6 +27,7 @@ jobs:
             run: find . -iname "*pain_au_chocolat*" -exec echo "::error file={},title="Unwanted file detected"::{}" \;
           - name: Find tmp in directory
             run: find . -path '*/tmp/*' -exec echo "::error file={},title="Unwanted file detected"::{}" \;
+            
     check_program_compilation:
         name: check compilation
         runs-on: ubuntu-latest
@@ -44,20 +45,18 @@ jobs:
           - name: Compilation clean  
             timeout-minutes: 2
             run: make clean
-    run_tests:
-        name: check test
-        runs-on: ubuntu-latest
-        container: epitechcontent/epitest-docker
-        needs:
-            - check_program_compilation
-        steps:
-          - name: Check repository
-            uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
-          - name: Compilation test
-            timeout-minutes: 2
-            run: make tests_run
+     run_tests:
+    needs: [check_program_compilation]
+    name: "Runs tests with criterion"
+    runs-on: ubuntu-latest
+    container:
+      image: epitechcontent/epitest-docker:latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - id: run_tests
+        run: make tests_run
+        timeout-minutes: 2
     push_to_mirror:
         name: Mirorring                         
         runs-on: ubuntu-latest
