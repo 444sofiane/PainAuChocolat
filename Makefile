@@ -7,16 +7,18 @@
 
 CC	=	gcc
 
-SRC	=	src/test.c
+SRC	=	main.c
 
 OBJ	=	$(SRC:.c=.o)
 
 NAME	=	test
 
+
+all:	$(NAME)
+
 $(NAME):	 $(OBJ)
 	$(CC) $(OBJ) -o $(NAME)
 
-all:	$(NAME)
 
 tests_run:
 	make -C tests/
