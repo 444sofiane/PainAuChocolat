@@ -1,51 +1,58 @@
 name: chocolatine
 
 on:
-    push:
-        branches-ignore:
-            - "ga-ignore-*"
-    pull_request:
-        branches-ignore:
-            - "ga-ignore-*"
+  push:
+    branches-ignore:
+    - "ga-ignore-*"
+  pull_request:
+    branches-ignore:
+    - "ga-ignore-*"
 
 env:
-    MIRROR_URL: git@github.com:EpitechPromo2026/B-DOP-200-STG-2-1-chocolatine-sofiane.saou.git
-    EXECUTABLES: "test"
-    
+  MIRROR_URL: "git@github.com:EpitechPromo2026/B-DOP-200-STG-2-1-chocolatine-sofiane.saou.git"
+  EXECUTABLES: "test"
+  ARGUMENTS: ""
+
 jobs:
-    check_repository_cleanliness:
-        name: check clean
-        runs-on: ubuntu-latest
-        steps:
-          - name: Check repository
-            uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
-          - name: Find unwanted file
-            run: find . -regextype posix-extended -regex '.*\.(~.a|o|so|gcda|gcno|gcov)' -exec echo "::error file={},title="Unwanted file detected"::{}" \;
-          - name: Find pain_au_chocolat files
-            run: find . -iname "*pain_au_chocolat*" -exec echo "::error file={},title="Unwanted file detected"::{}" \;
-          - name: Find tmp in directory
-            run: find . -path '*/tmp/*' -exec echo "::error file={},title="Unwanted file detected"::{}" \;
-            
-    check_program_compilation:
-        name: check compilation
-        runs-on: ubuntu-latest
-        container: epitechcontent/epitest-docker
-        needs:
-            - check_repository_cleanliness
-        steps:        
-          - name: Check repository
-            uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
-          - name: Compilation execution     
-            timeout-minutes: 2
-            run: make
-          - name: Compilation clean  
-            timeout-minutes: 2
-            run: make clean
-     run_tests:
+  check_repo:
+    name: "Checks if the repository is clean and void of any unwanted files (temp files, binary files, etc.)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - id: check_repo
+        run: |
+          UNWANTED_FILES=$(find . -type f -not -path "./git/*" -wholename "*tmp/*" -or -name "*~" -or -name "*.o" -or -name "*.so" -or -name "*.gcno" -or -name "*.gcda" -or -name "*#" -or -name "#*" -or -name "*.gcov" -or -name "*pain_au_chocolat*")
+          for FILES in $UNWANTED_FILES; do
+            echo "::error file=${FILES#./},title=Unwanted file detected::${FILES#./}"
+          done
+          if [[ -n $UNWANTED_FILES ]]
+          then
+            exit 1
+          else
+            echo No unwanted files detected
+          fi
+  check_program_compilation:
+    needs: [check_repo]
+    name: "Checks if make compil and test all binary listed in the ARGUMENTS variable"
+    runs-on: ubuntu-latest
+    container:
+      image: epitechcontent/epitest-docker:latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - id: check_program_compilation
+        run: make
+        timeout-minutes: 2
+      - run: make clean
+      - run: |
+          OIFS=$IFS
+          IFS=','
+          for x in $EXECUTABLES
+            do
+              ./$x $ARGUMENTS
+            done
+          IFS=$OIFS
+  run_tests:
     needs: [check_program_compilation]
     name: "Runs tests with criterion"
     runs-on: ubuntu-latest
@@ -57,21 +64,20 @@ jobs:
       - id: run_tests
         run: make tests_run
         timeout-minutes: 2
-    push_to_mirror:
-        name: Mirorring                         
-        runs-on: ubuntu-latest
-        needs:
-            - run_tests
-        if: github.event_name == 'push'
-        steps:
-          - name: Check repository
-            uses: actions/checkout@v2
-            with:
-                fetch-depth: 0
-          - name: Check mirorring
-            uses: pixta-dev/repository-mirroring-action@v1
-            with:
-                target_repo_url:
-                    ${{ env.MIRROR_URL }}
-                ssh_private_key:
-                    ${{ secrets.GIT_SSH_PRIVATE_KEY }}
+
+  push_to_mirror:
+    needs: [run_tests]
+    if: ${{ github.event_name == 'push' }}
+    name: "Push all files to mirror specified"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: pixta-dev/repository-mirroring-action@v1
+        with:
+          target_repo_url:
+            ${{ env.MIRROR_URL }}
+          ssh_private_key:
+            ${{ secrets.GIT_SSH_PRIVATE_KEY }}
