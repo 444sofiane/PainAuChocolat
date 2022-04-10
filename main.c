@@ -2,13 +2,13 @@
 ** EPITECH PROJECT, 2022
 ** sfsqf
 ** File description:
-** sfsqf
+** sfsqfs
 */
 
 #include <stdio.h>
 
 int main()
 {
-    printf("hello world\n");
+    printf("hello worlds\n");
     return (0);
 }
