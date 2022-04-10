@@ -15,7 +15,7 @@ env:
 
 jobs:
   check_repo:
-    name: "Checks if the repository is clean and void of any unwanted files (temp files, binary files, etc.)"
+    name: "check_repository_cleanliness"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,7 +33,7 @@ jobs:
           fi
   check_program_compilation:
     needs: [check_repo]
-    name: "Checks if make compil and test all binary listed in the ARGUMENTS variable"
+    name: "check_program_compilation"
     runs-on: ubuntu-latest
     container:
       image: epitechcontent/epitest-docker:latest
@@ -54,7 +54,7 @@ jobs:
           IFS=$OIFS
   run_tests:
     needs: [check_program_compilation]
-    name: "Runs tests with criterion"
+    name: "run_tests"
     runs-on: ubuntu-latest
     container:
       image: epitechcontent/epitest-docker:latest
@@ -68,7 +68,7 @@ jobs:
   push_to_mirror:
     needs: [run_tests]
     if: ${{ github.event_name == 'push' }}
-    name: "Push all files to mirror specified"
+    name: "oush_to_mirror"
     runs-on: ubuntu-latest
 
     steps:
